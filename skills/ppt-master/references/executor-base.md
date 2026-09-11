@@ -8,24 +8,7 @@
 
 ### 1.0 Pre-generation Batch Read
 
-**Hard rule**: Before the first SVG page, batch-read every template SVG this deck will reference. Read once up front, never re-read during generation.
-
-| Source list | Read path |
-|---|---|
-| Chosen template's `design_spec.md` (read frontmatter to detect `replication_mode`) | `templates/design_spec.md` |
-| Every distinct `<basename>` in `spec_lock.md page_layouts` | `templates/<basename>.svg` |
-| Every distinct chart name in `spec_lock.md page_charts` | `templates/charts/<chart_name>.svg` |
-| Chart types in `design_spec.md §VII` not covered above | `templates/charts/<chart_name>.svg` |
-
-**Default — read each template once; re-read only on the mid-deck exception below**:
-- Layout SVG already loaded in this batch
-- Chart SVG already loaded in this batch
-
-`spec_lock.md` is the only file re-read per page (§2.1).
-
-**Exception**: user mid-deck adds pages or swaps templates introducing a basename/chart absent from the original batch → read the new file once, continue.
-
-> Note: batched prefix reads stay in the cached prompt prefix; per-page `spec_lock.md` re-reads append below and benefit from that cache. Scattered on-demand reads of layout/chart SVGs would invalidate downstream cache and sit in the compression-vulnerable mid-context region.
+Load the current lock and the layout/chart SVGs needed by the pages being authored. Reuse unchanged loaded templates; batch independent reads when useful. Refresh after a template change, context loss, or evidence of drift. Exact source identity and a coherent shared spec matter; a fixed reread count does not.
 
 Resolve the per-page template SVG via `spec_lock.md page_layouts` (authoritative). The legacy page-type table below is a **last-resort fallback** for legacy decks where `page_layouts` is missing.
 
@@ -45,7 +28,7 @@ Resolve the per-page template SVG via `spec_lock.md page_layouts` (authoritative
 
 **Typography execution order (mandatory):**
 
-1. Build a per-page text inventory from `design_spec.md §IX` + the current `notes/<NN>_*.md`.
+1. Build a per-page text inventory from `design_spec.md §IX` and any applicable existing `notes/<NN>_*.md`; notes are not a prerequisite for slide generation.
 2. Classify each text item before drawing. **Structural roles** (`title`, `subtitle` / `lead`, `body`, `annotation`, `footnote` / `page_number`) must map to their declared `spec_lock.typography` slot. A **one-off feature element** (a single hero number, an isolated emphasis label) may take an in-ramp intermediate value — the ramp is anchored on `body`, not a closed menu — but a feature size that **recurs** must be promoted to a declared slot. The failure mode this guards against is structural text silently inheriting the template's compact px, not legitimate feature sizing.
 3. Copy the role's locked px value into `font-size` verbatim. Do this before placing the text; never start from a template `font-size` and then "adjust".
 4. Layout from those locked sizes: compute line-height, wrapped line count, child `y` / `dy`, card padding, card height, column gaps, and available image/chart area from the chosen px values.
@@ -59,7 +42,7 @@ When the project's chosen template is a `mirror` template (`design_spec.md` fron
 
 1. **Per-page reference selection** — Strategist selects one mirror page per project page via `spec_lock.md page_layouts` (e.g., `P04: 015_content`). The basename is the mirror filename without extension; Strategist made this choice by reading `design_spec.md §V Page Roster` descriptions, not by guessing.
 2. **Copy, don't fill** — open the referenced mirror SVG (already in context from §1.0). **Copy it as the starting point for the project page**, then edit text elements in place to express the project's content for `P<NN>`. Preserve every non-text element verbatim: backgrounds, decorative shapes, sprite-cropped images, charts, icon usage, color values, font families, geometry, sprite `<svg viewBox>` wrappers, and **which image** each `<image>` points at.
-3. **What you may edit** — the visible text content of `<text>` / `<tspan>` elements that express slide-specific content (title, body, captions, KPI labels, dates, page numbers). Replace the source deck's example text with the project's text for this page from `design_spec.md §IX` and `notes/<NN>_*.md`.
+3. **What you may edit** — the visible text content of `<text>` / `<tspan>` elements that express slide-specific content (title, body, captions, KPI labels, dates, page numbers). Replace the source deck's example text with the project's text for this page from `design_spec.md §IX` and any applicable existing `notes/<NN>_*.md`.
 4. **What you must not touch** — element positions, sizes, fonts, colors, fills, strokes, gradients, **which image each `<image>` points at**, `<g>` grouping, sprite-sheet `<svg viewBox>` wrappers, decorative `<rect>` / `<path>` / `<circle>` / `<polygon>` shapes, `<use data-icon="...">` markers, embedded chart data structures. Mirror's value is preserving the source deck's visual identity — any geometric / decorative drift defeats the purpose. **The `href` path is not the image**: normalizing a bare `href="cover_bg.png"` to `href="../images/<name>"` (when Step 3 relocated the asset to `images/`) points at the *same* image and changes nothing visual — that is an allowed path fix, not a fidelity edit. Leaving the bare href as-is is also fine; the exporter and live preview resolve bare hrefs against `images/` either way.
 5. **Content fit** — the mirror page was chosen by Strategist because its layout matches the content slot. If the project's content for `P<NN>` legitimately needs more / fewer items than the mirror page provides (e.g. mirror shows 3 KPI cards, project has 4 metrics), keep the mirror page's visual rhythm and either drop one metric to fit or split across two pages — do **not** restructure the mirror page's grid. If neither works, surface a `warning: P<NN> content does not fit mirror reference <basename>; suggest different reference page` and proceed with the closest-fit edit.
 6. **No `{{}}` substitution** — mirror SVGs do not contain placeholder markers. Do not search for `{{TITLE}}` / `{{CONTENT_AREA}}` etc.; do not invent placeholders. The whole mirror contract is "verbatim source + in-place text edit".
@@ -93,15 +76,15 @@ Before generating each page, output which template is used:
 
 ---
 
-## 2. Design Parameter Confirmation (Mandatory Step)
+## 2. Design parameters
 
 Before the first SVG page, output a confirmation listing: canvas dimensions, body font size, color scheme (primary/secondary/accent HEX), font plan, and the live-preview URL reported by the launcher. If the preview launch failed, state that failure before generating SVGs instead of silently proceeding. Prevents spec/execution drift.
 
-### 2.1 Per-page spec_lock re-read (Mandatory)
+### 2.1 Current execution lock
 
-> Long decks drift off the declared palette/icons mid-deck due to context compression. `spec_lock.md` is the canonical execution reference — re-read it per page to bypass model memory.
+> `spec_lock.md` is the canonical execution reference. Reuse a current loaded copy; refresh after changes, compaction, or observed drift.
 
-**Hard rule**: Before generating **each** SVG page, `read_file <project_path>/spec_lock.md`. Use only values from this file, not from memory. If context was auto-compacted, also `read_file <project_path>/design_spec.md` for the current page's §IX brief.
+Use the current lock and page's §IX brief for every SVG. Reload the relevant material if it is absent or no longer reliable in context; do not invent colors, assets, or page assignments.
 
 **Per-block expression**: render each `design_spec.md §IX Content` block in its written texture — a full-sentence block as wrapped prose, a fragment/label block as bullets/keywords. **Never split a full-sentence block into a bullet list** — splitting loses the information that the block was continuous reasoning, not a set of parallel points; not because a bullet lays out easier, and not because an inherited template slot is shaped as a list. If a block carries no clear texture, infer the mode from its wording and the page layout.
 
@@ -167,13 +150,13 @@ Before drawing each page, look up its entry in `page_charts` to decide which cha
 - **Proximity**: group related elements with tight spacing; separate unrelated groups
 - **Spec adherence**: follow color, layout, canvas format, and typography in the spec
 - **Template structure**: if templates exist, inherit the visual framework
-- **Main-agent ownership**: SVG generation must run in the main agent (not sub-agents) — pages share upstream context for cross-page visual continuity
-- **Generation rhythm**: lock global design context first, then generate pages sequentially in one continuous context. No batched groups (e.g., 5 at a time).
+- **Integration ownership**: one agent owns cross-page visual consistency. Independent pages or asset tasks may be delegated with the same current spec, source scope, and explicit file ownership when runtime permits; inspect integrated results.
+- **Generation rhythm**: establish shared design before authoring and preserve each page's narrative role. Choose an efficient order or batch size; inspect every produced page.
 - **Reference — image-led promotional pages (not a constraint)**: for travel, venue, product-introduction, hospitality, event, real-estate, and brochure-style decks, let images define the page skeleton before placing text. Consult [`image-layout-patterns.md`](image-layout-patterns.md) §Imported Deck Patterns and prefer patterns such as `#74` TOC image-navigation cards, `#75` asymmetric chapter banners, `#77` photo mosaic with a text cell, `#78` ambient banner + evidence photo + text panel, `#79` ribbon-header image cards, and `#80` side hero image + staggered evidence cards before falling back to plain left/right image-text splits.
 - **Phased batch generation** (recommended):
-  1. **Visual Construction Phase**: generate all SVG pages sequentially for visual consistency. Use layout judgment for chart marks during the draft. **MUST embed plot-area markers** per §3.1 below on every chart page — coordinate calibration is a post-generation step (see [`workflows/verify-charts.md`](../workflows/verify-charts.md)) that depends on these markers — and **native object metadata** per §3.2 on every eligible data-chart page.
+  1. **Visual Construction Phase**: generate the requested SVG pages with shared design consistency. Use layout judgment for chart marks during the draft. **MUST embed plot-area markers** per §3.1 below on every chart page — coordinate calibration is a post-generation step (see [`workflows/verify-charts.md`](../workflows/verify-charts.md)) that depends on these markers — and **native object metadata** per §3.2 on every eligible data-chart page.
   2. **Quality Check Gate**: run `python3 scripts/svg_quality_checker.py <project_path>` on `svg_output/`. Any `error` (banned features, viewBox mismatch, spec_lock drift, non-PPT-safe font, etc.) MUST be fixed on the offending page before proceeding — regenerate and re-check. Address `warning`s when straightforward. Do NOT defer to after `finalize_svg.py` — finalize rewrites SVG and masks some violations.
-  3. **Logic Construction Phase**: after SVGs pass the quality check, batch-generate speaker notes for narrative continuity.
+  3. **Speaker notes, when needed**: after SVGs pass the quality check, prepare requested notes or notes needed for requested narration with cross-page narrative continuity. Skip note generation when no notes are needed; preserve applicable existing notes.
 
 ### 3.1 Chart Plot-Area Marker (MANDATORY on every chart page)
 
@@ -407,9 +390,11 @@ If `spec_lock.md` is absent, consult [`strategist.md`](strategist.md) §g — do
 
 ## 8. Speaker Notes Generation Framework
 
+Use this section when speaker notes or narration are requested, or existing notes should be included. A deck without notes needs neither note generation nor splitting. An explicit request to exclude speaker notes from the PPTX takes precedence over existing note files: pass `--no-notes` to the exporter. Requested narration may still require notes as an audio-generation source.
+
 ### Task 1. Generate Complete Speaker Notes Document
 
-After all SVG pages are finalized, enter Logic Construction Phase and write the full notes to `notes/total.md`. Batch-writing (not per-page) lets transitions plan coherently.
+After the SVG pages pass the quality check, write requested new or revised notes to `notes/total.md`. Plan transitions across the deck; choose a useful writing order. Existing notes that remain accurate need no regeneration.
 
 **Pure spoken narration**: notes are read aloud verbatim by `notes_to_audio.py` (TTS). Write only what should be spoken. No visible markers, no labeled meta-lines, no enumerated key-point lists, no duration annotations — anything you write outside the heading will be vocalized.
 
@@ -444,7 +429,7 @@ Having framed the industry backdrop, let's look at the actual market landscape. 
 
 ### Task 2. Split Into Per-Page Note Files
 
-Auto-split `notes/total.md` into per-page files in `notes/`.
+When using a new or revised `notes/total.md`, split it into per-page files in `notes/` before export or audio generation. The splitter requires nonempty notes matching every SVG; repair incomplete requested notes before running it. Reuse correctly split, unchanged per-page notes without another split. Skip this task when there are no notes to include; absent notes do not block PPTX export.
 
 **Naming**: match SVG names (`01_cover.svg` → `notes/01_cover.md`); `slide01.md` also supported (legacy).
 
@@ -452,18 +437,18 @@ Auto-split `notes/total.md` into per-page files in `notes/`.
 
 ## 9. Next Steps After Completion
 
-> **Auto-continuation**: After Visual Construction Phase (all SVG pages) and Logic Construction Phase (all notes) are complete, the Executor proceeds directly to the post-processing pipeline.
+> **Auto-continuation**: After all requested SVG pages pass the quality check and any requested notes are ready, proceed directly to the applicable post-processing steps. A deck without notes continues to SVG finalization and export.
 
 **Post-processing & Export** (same canonical pipeline as [shared-standards.md §5](shared-standards.md)):
 
 ```bash
-# 1. Split speaker notes
+# 1. If new or revised notes need splitting (otherwise skip)
 python3 scripts/total_md_split.py <project_path>
 
 # 2. SVG post-processing (auto-embed icons, images, etc.)
 python3 scripts/finalize_svg.py <project_path>
 
-# 3. Export PPTX
+# 3. Export PPTX (add --no-notes when the user explicitly excludes notes)
 python3 scripts/svg_to_pptx.py <project_path>
 # Output (default-flow mode):
 #   exports/<project_name>_<timestamp>.pptx           ← native pptx (canonical output)
@@ -472,3 +457,5 @@ python3 scripts/svg_to_pptx.py <project_path>
 # Add --svg-snapshot to additionally emit:
 #   exports/<project_name>_<timestamp>_svg.pptx      ← SVG snapshot pptx (sibling of native pptx)
 ```
+
+The conditional notes step and exporter options follow [shared-standards.md §5](shared-standards.md). Finalize before exporting; do not run the splitter on an absent or empty notes source.

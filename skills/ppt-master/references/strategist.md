@@ -20,9 +20,9 @@ As a top-tier AI presentation strategist, receive source documents, perform cont
 
 ## 1. Strategist Confirmation Stage
 
-🚧 **GATE — Mandatory read first**: `read_file templates/design_spec_reference.md` before any analysis or writing. The design_spec.md output MUST follow that template's 11-section structure exactly. After writing, self-check each section is present: I Project Info → II Canvas → III Visual Theme → IV Typography → V Layout → VI Icon → VII Visualization → VIII Image → IX Outline → X Speaker Notes → XI Tech Constraints.
+Before writing or structurally changing `design_spec.md`, read `templates/design_spec_reference.md`; analysis or a local content revision does not require rereading the full template. The design_spec.md output MUST follow that template's 11-section structure exactly. After writing, self-check each section is present: I Project Info → II Canvas → III Visual Theme → IV Typography → V Layout → VI Icon → VII Visualization → VIII Image → IX Outline → X Speaker Notes → XI Tech Constraints.
 
-⛔ **BLOCKING**: After the read, present professional recommendations for the confirmation fields below and wait for explicit user confirmation.
+Resolve the design fields from the user brief, supplied template, and existing choices. Ask only about material unresolved preferences or an explicit approval-first boundary; routine derived values do not require another confirmation.
 
 **Three-stage confirmation (the default Confirm UI flow; chat mirrors it).** The confirmation fields split into a dependency order, confirmed in three passes:
 
@@ -34,7 +34,7 @@ As a top-tier AI presentation strategist, receive source documents, perform cont
 
 The design-system items are anchored by Stage 1 — `visual_style` governs `e` / `f` / `g` (§d Layer 2), and delivery purpose sets the §g body size (one fixed value per purpose), page density, **and** the `b` page-count recommendation. So author Stage 2 *after* Stage 1 is confirmed, against the user's real choices. Image strategy is anchored by both Stage 1 and Stage 2: h.5 rendering follows the locked visual direction, while h.5 palette is color behavior only and must follow the confirmed §e colors. So author Stage 3 *after* Stage 2 is confirmed. **Page count is derived, not an anchor** — it follows content volume × delivery purpose, which is why it is Stage 2. The launch / re-derive / wait mechanics live in [SKILL.md Step 4](../SKILL.md); the item specs below keep their `a`–`h` letters.
 
-> **Execution discipline**: This is the last BLOCKING checkpoint in the pipeline. After confirmation, complete the Design Spec and proceed to image generation / SVG / post-processing without further pauses.
+> Complete the requested design and subsequent authorized generation/export. Existing choices do not need a second approval, and a design-only request does not authorize later production.
 >
 > **One opt-in exception**: present the spec-refinement line alongside the split-mode note (SKILL.md Step 4). It is OFF by default — the above discipline holds unchanged. Only when the user *explicitly* asks to refine the spec do you hand off to the [refine-spec](../workflows/refine-spec.md) workflow, which produces the full spec first and stops for user review/revision of any part before generation. Never enter it unprompted.
 
@@ -194,7 +194,7 @@ See [`../templates/icons/README.md`](../templates/icons/README.md) for the curre
 
 **Mandatory**: propose **two** combinations to the user — one concord (safe), one contrast (with tension). Do not default to "title = body, same font" without explicit user request. Pick each family by subject fit and the locked `visual_style`'s **§2 character** (read at the GATE above) — there is **no default family**; type should follow the deck's content and aesthetic, not fall back to one safe face.
 
-> **Template precedence**: when a template was loaded at Step 3 via an explicit path and declares `title` / `body` font stacks in `<project_path>/templates/design_spec.md §III Typography` / §IV (or whichever heading the fused spec uses), lock those directly and skip the two-combination presentation. Same precedence as e. — user override > template values.
+> **Template precedence**: when a template was loaded at Step 3 via an explicit path and declares `title` / `body` font stacks in `<project_path>/templates/design_spec.md §III Typography` / §IV (or whichever heading the fused spec uses), lock those directly and reuse that choice. Same precedence as e. — user override > template values.
 
 **Cross-platform pre-installed reference**:
 
@@ -403,11 +403,11 @@ When the deck includes any `ai` rows, Strategist locks a **deck-wide rendering**
 
 🚧 **GATE — before recommending values**: `read_file references/image-renderings/_index.md` and `read_file references/image-palettes/_index.md`. They contain the catalog, auto-selection tables, and a rendering × palette compatibility matrix.
 
-#### Three-candidate presentation (default path)
+#### Comparing unresolved visual choices
 
-**Hard rule**: Unless the user has already named a specific rendering or palette (chat or template), present **≥3 distinct rendering × palette combinations** and let the user pick. Never auto-lock a single combination silently.
+Reuse selected rendering and palette; otherwise choose a coherent combination that meets the brief. Present alternatives only for a consequential unresolved preference or when requested; do not require a fixed candidate count.
 
-**Per-candidate schema** (exactly 4 lines, no extras):
+**Optional comparison format** (adapt detail to the decision):
 
 ```
 [Plan A] <temperament label> — <rendering> × <palette>
@@ -436,7 +436,7 @@ After the candidates, append one line:
 | Skip presentation when user has specified | User-named rendering or palette (chat / brand / template), **or a Confirm UI pick in `result.json.image_strategy`** (same shape as color / typography honoring their confirmed candidate), bypasses the candidate flow — lock *that chosen candidate's* `rendering` + `palette` directly per the truth-precedence rule; do not re-pick. |
 | `custom` is a tail-case, not a default | When no preset fits, a candidate may set `rendering: custom` and / or `palette: custom` (rules: [`image-renderings/_index.md`](./image-renderings/_index.md) §1.5, [`image-palettes/_index.md`](./image-palettes/_index.md) §2). At most one candidate per dimension may carry `custom`; one candidate may carry both dimensions as `custom`. `Visual` / `Color` lines describe the behavior in prose, never by naming a competing preset. |
 
-**Forbidden — padding with conflicts**: if e.'s HEX cannot find ≥3 compatible palettes, present the smaller set (2 candidates) and state "your color is unusual — only N palettes can carry it without conflict." A `custom` candidate is allowed only when its prose genuinely describes a tail-case the presets cannot — not as a slot-filler. Never fill remaining slots with known-conflicting options.
+Offer only compatible, materially distinct options. Use `custom` when the actual requested visual behavior is outside the presets, with its required behavior fields; never pad a comparison with incompatible choices.
 
 **Worked example** (e. = `#1E3A5F` navy + `#F8F9FA` off-white + `#D4AF37` gold; d. = consulting; chat in English):
 
@@ -482,7 +482,7 @@ After the user picks a candidate (or supplies a custom variant), proceed to "Rec
 
 #### Catalog reference (for candidate construction)
 
-The tables below are source data Strategist reads when constructing the three candidates above. They are no longer the final output by themselves.
+The tables below are source data Strategist reads when comparing relevant candidates when needed. They are no longer the final output by themselves.
 
 **Rendering recommendation** (soft — user may override with any other rendering from the catalog):
 
@@ -566,9 +566,9 @@ Image_Generator reads these fields and applies them deck-wide. If both are absen
 
 #### hero_page suggestion (same confirmation turn)
 
-After the user picks a candidate, scan the outline and surface any pages where the image makes more sense as the page's main voice than as a local block. Present them as a short list and let the user confirm, edit, or skip. Result is recorded as `page_role: hero_page` on the matching `ai` rows. Density is judgment-based — no fixed quota.
+Use `page_role: hero_page` where imagery best carries the page's message within the agreed design. Ask only when that changes an unresolved product choice. Record the role on matching `ai` rows; there is no quota.
 
-**Per hero_page title**: lock where it lives — `embedded` (fused into the image: neon, carved, smoke, 3D-lit lettering) or `none` (editable SVG title over an atmospheric backdrop, Primitive D). Default `none`; flip to `embedded` only when the words must be *part of the visual*, not merely a display font. Per page — may bake only the keyword while subtitle / date / chrome stay SVG. Surface it with the hero_page list for the same confirm / edit / skip.
+**Per hero_page title**: lock where it lives — `embedded` (fused into the image: neon, carved, smoke, 3D-lit lettering) or `none` (editable SVG title over an atmospheric backdrop, Primitive D). Default `none`; flip to `embedded` only when the words must be *part of the visual*, not merely a display font. Per page — may bake only the keyword while subtitle / date / chrome stay SVG. Record the decision with the page role and respect an existing user choice.
 
 **When selection includes B**, you must run `python3 scripts/analyze_images.py <project_path>/images` before outputting the spec, and integrate scan results into the image resource list.
 
@@ -630,7 +630,7 @@ After the user picks a candidate, scan the outline and surface any pages where t
 
 1. **Read** — `read_file references/image-layout-patterns.md`. The file enumerates 72 numbered techniques split into **Part 1 — Primary Structures** (#1–#19 container layouts, #38–#46 image-as-canvas + native overlay, #47–#56 multi-image) and **Part 2 — Modifier Layers** (#20–#26 non-rectangular crops, #27–#37 overlays & masks, #57–#61 texture, #62–#72 special). The four `Image narrative intent` values below cover only broad categories.
 2. **Produce** — every non-formula row in §VIII Image Resource List MUST fill the `Layout pattern` column with one or more `#<id> <name>` joined by ` + ` drawn verbatim from this file (Primary + optional Modifiers). Rows with empty cells, paraphrased names, or invented ids are invalid. Formula rows are the only exception; use `formula-inline` or `formula-block`.
-3. **Image-as-canvas coverage** — for any deck with ≥4 image-bearing pages, at least one page MUST use a `#38–#46` pattern (image-as-canvas + native overlay) unless every image is a pure cover / chapter divider / atmosphere backdrop. This family is the most-skipped one and is usually the right answer for content-rich pages with photographs. If the deck legitimately has no opportunity for it, state the reason in §VIII directly under the table.
+3. **Image-as-canvas choice** — consider `#38–#46` when the content would benefit from image-led composition. Choose by narrative role and source content, without a minimum page quota.
 
 **Skip-detection signal for self-audit**: if you notice that every page's `Layout pattern` column resolves to #2/#3 (left-third or right-third), #5/#6 (top-bottom band), or generic side-by-side, you have not actually consulted the file — re-read and reconsider. The default left/right and top/bottom split bias is the failure mode this gate exists to break.
 
@@ -674,39 +674,9 @@ The catalog covers **both data charts and structural information designs**. A "m
 
 The most common Strategist failure mode is missing the structural half — treating "chart" as "numeric chart only" and leaving team / agenda / principles / journey pages as text-only when a template would fit. Read the catalog with both lenses.
 
-> **Reading is mandatory; the catalog is a starting point, not a copy target.**
-> - Fully read `templates/charts/charts_index.json` **before drafting the Strategist confirmation stage** — the read happens up front, not when you sit down to write Section VII. The file contains `meta` + `charts.<key>.summary` only; each `summary` is a selection rule (`"Pick for … Skip if …"`), not a description. There is **no category, quickLookup, or keyword index** — selection is done by semantically matching each page's content shape against all 76 summaries in one pass.
-> - Not every page needs a chart. When a page's information structure matches a catalog entry, **use that template as a structural starting point** — keep the visualization type and core layout logic, then adapt composition, density, color, decoration, and accompanying elements to fit this deck's content and visual tone. Free adjustment is encouraged; what is forbidden is (a) generating without reading the catalog, and (b) blind verbatim mimicry that ignores the page's actual content weight.
->
-> **Workflow**:
-> 1. Read all 76 summaries; for each page, identify the Pick clause that matches the page's content shape AND does not match any Skip clause.
-> 2. Prefer specificity (`vertical_list` over generic `numbered_steps`).
-> 3. One primary visualization per page; a supporting layout may accompany it.
-> 4. List selections in Design Spec section VII; section IX only notes the visualization type name per page.
->
-> **Source vocabulary mismatch** — the catalog is in English. When source content uses Chinese / industry jargon ("中台", "架构图", "述职", "管道", "前后端"), translate the intent first, then match against summaries. The catalog deliberately keeps no keyword index — full-read forces semantic matching rather than lexical grep.
->
-> **Read-audit (mandatory, section VII format)** — single combined table; `summary-quote` column is the anti-fabrication audit, `path` + `usage` serve Executor lookup. Format defined in [`templates/design_spec_reference.md`](../templates/design_spec_reference.md) §VII:
-> ```
-> Catalog read: 76 templates
->
-> | Page | Template      | Path                              | Summary-quote (verbatim) | Usage |
-> | ---- | ------------- | --------------------------------- | ------------------------ | ----- |
-> | P03  | column_chart     | templates/charts/column_chart.svg    | "<verbatim first sentence>" | <intent> |
-> | P07  | line_chart    | templates/charts/line_chart.svg   | "<verbatim first sentence>" | <intent> |
-> | P11  | pie_chart     | templates/charts/pie_chart.svg    | "<verbatim first sentence>" | <intent> |
->
-> Runners-up considered (3 entries minimum, drawn from real second-best matches):
-> - <key_A> | rejected for P03: <reason citing this deck's specifics>
-> - <key_B> | rejected for P07: <reason>
-> - <key_C> | rejected for P11: <reason>
-> ```
-> The `summary-quote` must be copy-pasted from `charts_index.json` — paraphrasing or summarizing breaks the audit. Every template name listed (selected or rejected) must `grep` cleanly inside `charts_index.json` (so misspelled or invented keys fail). If fewer than 3 visualization pages exist, list what exists and note "fewer than 3 viz pages"; runners-up still required for each page that does exist.
->
-> **Fallback when no template fits**:
-> 1. Re-read the full summary list with the page's intent re-stated in plain language — "non-obvious" matches often surface on the second pass (e.g. "causal chain" → `process_flow` or `sankey_chart`).
-> 2. If still no fit: data-driven content → table layout; conceptual/illustrative → "AI-generated image" (Image_Generator handles); structural → "custom layout".
-> 3. Mark the page `no-template-match` in section VII with the fallback chosen and why. Do NOT silently substitute a close-but-wrong chart.
+Use the catalog when a page needs a visualization or structural pattern. Read candidate summaries relevant to its information shape; expand the search when a likely match is missing. A complete catalog read is useful only when the selection problem needs it. A known adequate choice with unchanged evidence can be reused.
+
+Record selected template names, real paths, intended pages and usage in section VII. Preserve its table fields and copy a real summary quote where used; do not invent catalog coverage, a template, or a rejected alternative. List runners-up only when a material comparison was actually made, without a fixed count. If no template fits, choose an appropriate table, custom layout, or authorized image and record `no-template-match` with the reason. Section IX links the chosen page role without duplicating the analysis.
 
 ### Speaker Notes Requirements (Default — no discussion needed)
 
@@ -831,7 +801,7 @@ This is what makes the axis meaningful: a `presentation` deck and a `text` deck 
 1. Read reference template: `templates/design_spec_reference.md`
 2. Generate complete spec from scratch based on analysis
 3. Save to: `projects/<project_name>.../design_spec.md`
-4. **Generate execution lock**: read `templates/spec_lock_reference.md` and produce `projects/<project_name>.../spec_lock.md` — a distilled, machine-readable short form of the color / typography / icon / image / **page_rhythm** / **page_layouts** / **page_charts** decisions above. This file is what the Executor re-reads before every page (see [executor-base.md](executor-base.md) §2.1). The values in `spec_lock.md` MUST exactly match the decisions recorded in `design_spec.md`; if they ever diverge, `spec_lock.md` wins and `design_spec.md` should be treated as historical narrative.
+4. **Generate execution lock**: read `templates/spec_lock_reference.md` and produce `projects/<project_name>.../spec_lock.md` — a distilled, machine-readable short form of the color / typography / icon / image / **page_rhythm** / **page_layouts** / **page_charts** decisions above. This file is what the Executor uses as the current authority and refreshes after changes or context loss (see [executor-base.md](executor-base.md) §2.1). The values in `spec_lock.md` MUST exactly match the decisions recorded in `design_spec.md`; if they ever diverge, `spec_lock.md` wins and `design_spec.md` should be treated as historical narrative.
    - **page_rhythm is mandatory**: Based on the page list in §IX Content Outline, assign each page one of `anchor` / `dense` / `breathing` (see `spec_lock_reference.md` for the full vocabulary). This is what breaks the uniform "every page is a card grid" feel — without it the Executor defaults all pages to `dense`.
    - **Rhythm follows narrative, not quota**: `breathing` pages mark natural pauses — chapter transitions, standalone emphasis (hero quote / big number), SCQA bridges. Dense decks may legitimately be all `dense`. **Do NOT invent filler pages** ("Thank you", empty dividers) to pad rhythm — every `breathing` page must say something independent. Delivery purpose biases the overall lean (`presentation` toward more `anchor` / `breathing`, `text` toward `dense`; see §6.1) — a bias, never a quota.
    - **Cover impact is mandatory**: Page `P01` is the deck's first visual contract, not a generic title slide. In `design_spec.md §IX`, add a `Cover impact` line for `P01` that names one concrete hook and one concrete composition strategy. Use the source's strongest available signal: a provocative core claim, object / scene metaphor, hero number, founder / product / audience moment, or a distilled conflict. Pair it with one concrete composition strategy — such as `full-bleed image + floating title`, `typographic poster`, `hero object`, `data hook`, `editorial scene`, `high-contrast abstract geometry`, or a fresh composition the deck's subject suggests (these are starting points, not the allowed set). If no external or AI image is available, still specify a native-SVG visual hook; do not fall back to "title + subtitle + decorative background". (Beautify / template-fill keep the source cover verbatim — this rule does not apply on those preservation paths.)

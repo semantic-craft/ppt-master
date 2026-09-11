@@ -2,7 +2,7 @@
 
 > Human-readable design narrative — rationale, audience, style, color choices, content outline. Read once by downstream roles for context.
 >
-> Machine-readable execution contract: `spec_lock.md` (color / typography / icon / image short form). Executor re-reads `spec_lock.md` before every SVG page to resist context-compression drift. Keep both in sync; on divergence, `spec_lock.md` wins.
+> Machine-readable execution contract: `spec_lock.md` (color / typography / icon / image short form). Executor uses the current lock for every page and refreshes after changes or context loss. Keep both in sync; on divergence, `spec_lock.md` wins.
 
 ## I. Project Information
 
@@ -235,19 +235,19 @@ Two views on the same font decisions — fill both, keep them consistent:
 
 > When pages map to a chart-library template (data charts OR structural patterns — team rosters, agendas, frameworks, etc.), Strategist lists them here for Executor reference. Single combined table — `summary-quote` column is the anti-fabrication audit, `path` + `usage` columns serve Executor lookup.
 
-Catalog read: 76 templates
+Catalog inspected: <actual selection scope>
 
 | Page | Template | Path | Summary-quote (verbatim from `charts_index.json`) | Usage |
 | ---- | -------- | ---- | ------------------------------------------------- | ----- |
 | P05 | grouped_bar_chart | `templates/charts/grouped_bar_chart.svg` | "Pick for 2-4 series side-by-side across the same categories (e.g. YoY/QoQ). Skip if showing composition within each category (use stacked_bar_chart)." | YoY revenue comparison by product line |
 
-**Runners-up considered** (3 entries minimum, drawn from real second-best matches in this deck):
+**Runners-up considered** (material comparisons actually made):
 
 - `<key_A>` | rejected for P05: `<reason citing this deck's specifics>`
 - `<key_B>` | rejected for P##: `<reason>`
 - `<key_C>` | rejected for P##: `<reason>`
 
-> **Audit rule**: `Summary-quote` must be copy-pasted verbatim — paraphrasing breaks the audit. Every template name listed must `grep` cleanly inside `charts_index.json` (so misspellings/inventions fail). If fewer than 3 viz pages exist, list what exists and note "fewer than 3 viz pages"; runners-up still required for each page that does exist.
+> **Audit rule**: selected names and paths must resolve to actual catalog entries. Preserve real summary quotes where used. Record only actual comparisons; no fixed runners-up count or whole-catalog claim is required.
 
 ---
 
@@ -259,7 +259,7 @@ Catalog read: 76 templates
 | comparison_p07.png | {canvas_info['dimensions']} | [ratio] | Three-panel approach comparison — panel labels stay inside the image | Diagram | #44 background image + native network/architecture diagram | ai | Pending | Three side-by-side schematic motifs comparing approach A / B / C, panel labels rendered inside each motif | embedded | local |
 | formula_001.png | [actual dimensions from formula manifest / image_analysis] | [ratio] | Block equation on P03 | Latex Formula | formula-block | formula | Rendered | `E = mc^2` — energy-mass equation | | |
 
-> **Layout pattern column is MANDATORY** — for non-formula rows, value is one or more `#<id> <name>` joined by ` + ` drawn verbatim from [`references/image-layout-patterns.md`](../references/image-layout-patterns.md) (Primary + optional Modifiers). Empty cells, paraphrased names, or invented ids invalidate the row. Formula rows are the only exception; use `formula-inline` or `formula-block`. See `strategist.md §h` GATE for the three-layer requirement (read → produce → image-as-canvas coverage).
+> **Layout pattern column is MANDATORY** — for non-formula rows, value is one or more `#<id> <name>` joined by ` + ` drawn verbatim from [`references/image-layout-patterns.md`](../references/image-layout-patterns.md) (Primary + optional Modifiers). Empty cells, paraphrased names, or invented ids invalidate the row. Formula rows are the only exception; use `formula-inline` or `formula-block`. See `strategist.md §h` GATE for the layout selection guidance (relevant patterns, explicit row assignments, and content-appropriate image composition).
 
 **Type** (free-form category tag; common values):
 
@@ -344,10 +344,12 @@ Catalog read: 76 templates
 
 ## X. Speaker Notes Requirements
 
-One speaker note file per page, saved to `notes/`:
+Record whether notes are included. If none are requested or needed, keep this section and write `Not included`; an explicit no-notes delivery uses exporter `--no-notes`.
 
-- **Filename**: match SVG name (e.g., `01_cover.md`)
-- **Content**: script key points, timing cues, transition phrases
+When notes are included, save per-page files to `notes/`:
+
+- **Filename**: match SVG name (e.g., `01_cover.md`). A combined `notes/total.md` used with the splitter must contain nonempty notes for every SVG.
+- **Content**: follow the requested speaking style and narrative transitions; use the spoken-text format in [executor-base.md §8](../references/executor-base.md) for generated notes, especially when used for narration.
 
 ---
 

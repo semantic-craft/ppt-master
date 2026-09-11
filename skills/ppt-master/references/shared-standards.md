@@ -293,16 +293,18 @@ Wrap logically related elements in top-level `<g id="...">` groups. Produces Pow
 
 ## 5. Post-processing Pipeline (3 Steps)
 
-Must be executed in order — skipping or adding extra flags is FORBIDDEN:
+Run the applicable steps in order. Notes are optional; SVG finalization must precede export. Use documented exporter flags when needed for the requested output.
+
+Run Step 1 only when creating or updating per-page notes from `notes/total.md`. The splitter requires nonempty notes for every SVG. Repair incomplete requested notes before splitting; reuse correctly split, unchanged per-page notes without another split. Skip Step 1 when there are no notes to include. When the user explicitly wants no speaker notes in the PPTX, pass `--no-notes` in Step 3 so existing note files are not attached.
 
 ```bash
-# 1. Split speaker notes into per-page note files
+# 1. If notes need splitting, create per-page note files (otherwise skip)
 python3 scripts/total_md_split.py <project_path>
 
 # 2. SVG post-processing (icon embedding, image crop/embed/optimization, text flattening, rounded rect to path)
 python3 scripts/finalize_svg.py <project_path>
 
-# 3. Export PPTX (embeds speaker notes by default)
+# 3. Export PPTX (add --no-notes when the user explicitly excludes notes)
 python3 scripts/svg_to_pptx.py <project_path>
 # Output (default-flow mode):
 #   exports/<project_name>_<timestamp>.pptx           ← native pptx (canonical output)
@@ -343,7 +345,7 @@ Full reference: [`animations.md`](animations.md).
 
 **Default — raster size control**: `finalize_svg.py` optimizes raster images using a rendered-size budget of `2x` display pixels with a `2560px` maximum dimension; it may crop pixels for the flattened SVG snapshot. Native `svg_to_pptx.py` defaults to `--image-sizing cap`: it downscales only oversized full source images to `--image-max-dimension 2560`, keeps display cropping as editable PPT picture-crop metadata, and does not shrink a picture merely because its current SVG placement is small. Opaque PNG photos may become JPEG; transparent assets remain PNG. Use `finalize_svg.py --no-compress` / a higher `--max-dimension` only for diagnostic SVG snapshots, `svg_to_pptx.py --no-image-optimize` only when the native PPTX must retain original image bytes, and `svg_to_pptx.py --image-sizing display --image-scale 2` only for aggressive size reduction.
 
-**Re-run rule**: Any change to `svg_output/` after post-processing requires re-running Steps 2-3. Step 1 only re-runs if `notes/total.md` changed.
+**Re-run rule**: Any change to `svg_output/` after post-processing requires re-running Steps 2-3. Repeat Step 1 when included `notes/total.md` or its mapping to SVG pages changed; it remains unnecessary for an export without notes.
 
 ---
 
@@ -995,8 +997,8 @@ project/
 ├── svg_output/    # Raw SVGs (Executor output, contains placeholders)
 ├── svg_final/     # Post-processed final SVGs (finalize_svg.py output)
 ├── images/        # Image assets (user-provided + AI-generated)
-├── notes/         # Speaker notes (.md files matching SVG names)
-│   └── total.md   # Complete speaker notes document (before splitting)
+├── notes/         # Optional speaker notes (.md files matching SVG names)
+│   └── total.md   # Complete note source, when using the splitter
 ├── templates/     # Project templates (if any)
 └── *.pptx         # Exported PPT file
 ```
