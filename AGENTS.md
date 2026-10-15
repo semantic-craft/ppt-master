@@ -24,3 +24,7 @@ Repository maintenance does not require a worktree, new tests, branch, presentat
 - [skills/ppt-master/templates/](skills/ppt-master/templates/): layout, chart, brand, icon, and spec resources.
 - [skills/ppt-master/workflows/](skills/ppt-master/workflows/): specialized routes loaded when needed.
 - [docs/](docs/), [examples/](examples/), and [projects/](projects/): user documentation, examples, and generated-project workspace.
+
+## Lessons
+
+Read relevant [lessons](lessons.md) before implementation, review, or acceptance; update the matching entry after an observed correction or missed case.
